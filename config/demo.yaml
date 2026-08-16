@@ -1,0 +1,42 @@
+# Demonstration design of experiments.
+#
+# Every parameter the framework knows about is declared here. Point the tool at
+# a different YAML and it traverses a different experiment -- no source changes.
+
+root: airloads
+
+# Feature order is the order the model sees. `key` is the token used to build
+# the HDF5 group path: values are encoded with '-' -> 'n' and '.' -> 'p',
+# so alpha=-5 becomes "alpn5" and station=0.25 becomes "sta0p25".
+features:
+  - name: alpha          # incidence, degrees
+    key: alp
+    values: [-5, 0, 5, 10]
+
+  - name: station        # nondimensional spanwise position
+    key: sta
+    values: [0.0, 0.25, 0.5, 0.75]
+
+  - name: speed          # freestream velocity, m/s
+    key: spd
+    values: [20, 30, 40]
+
+# Real test matrices are ragged -- not every combination gets run. Restrictions
+# describe the holes, so the traversal never looks for data that was never taken.
+restrictions:
+  - when: {speed: 20}
+    allow:
+      alpha: [0, 5, 10]
+
+# Named validation sets. Selecting one removes exactly these configurations from
+# training before any fitting happens, then scores predictions against them.
+campaigns:
+  1:
+    - {alpha: 0, station: 0.25, speed: 30}
+    - {alpha: 5, station: 0.5, speed: 30}
+  2:
+    - {alpha: 10, station: 0.0, speed: 40}
+    - {alpha: -5, station: 0.75, speed: 40}
+  3:
+    - {alpha: 5, station: 0.75, speed: 20}
+    - {alpha: 0, station: 0.5, speed: 40}
